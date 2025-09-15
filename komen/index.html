@@ -1,0 +1,251 @@
+<!doctype html>
+<html
+  lang="en"
+  data-ws-project="16699a07-a447-4b1f-94d5-44111b078a52"
+  data-ws-last-published="2025-09-15T07:58:57.515Z"
+>
+  <head>
+    <link
+      rel="stylesheet"
+      type="text/css"
+      href="/assets/static/app_generated_index-6937cd5a.CYVIba-O.css"
+    />
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta property="og:url" content="https://url/komen" />
+    <title>Untitled</title>
+    <meta property="og:title" content="Untitled" />
+    <meta property="og:type" content="website" />
+    <meta name="robots" content="noindex, nofollow" />
+    <meta property="twitter:card" content="summary_large_image" />
+  </head>
+  <body class="w-element c1bax9or c1ixnb0a">
+    <div class="w-html-embed">
+      <style>
+        #comments {
+          max-width: 600px;
+          margin: 20px auto;
+        }
+
+        .comment {
+          background: #fff;
+          padding: 15px;
+          margin-bottom: 15px;
+          border-radius: 12px;
+          box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+          transition: transform 0.2s ease;
+        }
+
+        .comment:hover {
+          transform: translateY(-2px);
+        }
+
+        .comment-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 6px;
+          flex-wrap: wrap;
+        }
+
+        .comment-header strong {
+          font-weight: bold;
+          margin-right: 6px;
+          color: #222;
+        }
+
+        .comment-header .association {
+          font-weight: 300;
+          color: #666;
+          margin-right: auto; /* pushes date to the right */
+          font-size: 0.9rem;
+        }
+
+        .comment-header .date {
+          font-size: 0.8rem;
+          color: #777;
+          font-style: italic;
+        }
+
+        .comment p {
+          margin: 0;
+          line-height: 1.5;
+          color: #555;
+        }
+
+        .admin-response {
+          margin-top: 10px;
+          padding: 8px 12px;
+          background: #eeeeee;
+          /* border-left: 1px solid #d7d9d9; */
+          border-radius: 10px;
+          font-size: 0.9rem;
+          color: #333;
+        }
+
+        .separator {
+          color: #999;
+          margin: 0 6px;
+          font-weight: normal;
+        }
+      </style>
+
+      <div id="comments"></div>
+
+      <script>
+        const sheetId = "13xLjhbICv4BGzHm1WCKom9Uof8A15g2axBjzTKbsVi0";
+        const gid = "234595483";
+
+        function formatRelativeTime(date) {
+          const now = new Date();
+          const diffMs = now - date;
+          const diffSec = Math.floor(diffMs / 1000);
+          const diffMin = Math.floor(diffSec / 60);
+          const diffHour = Math.floor(diffMin / 60);
+          const diffDay = Math.floor(diffHour / 24);
+
+          if (diffSec < 10) return "Just now";
+          if (diffSec < 60) return `${diffSec} seconds ago`;
+          if (diffMin < 60) return `${diffMin} minutes ago`;
+          if (diffHour < 24) return `${diffHour} hours ago`;
+          if (diffDay === 1) {
+            return `Yesterday at ${date.toLocaleTimeString("en-US", {
+              hour: "numeric",
+              minute: "2-digit",
+              hour12: true,
+            })}`;
+          }
+
+          return date
+            .toLocaleString("en-US", {
+              month: "short",
+              day: "numeric",
+              year: "numeric",
+              hour: "numeric",
+              minute: "2-digit",
+              hour12: true,
+            })
+            .replace(",", " •");
+        }
+
+        function escapeHtml(str) {
+          if (!str && str !== 0) return "";
+          return String(str)
+            .replaceAll("&", "&amp;")
+            .replaceAll("<", "&lt;")
+            .replaceAll(">", "&gt;")
+            .replaceAll('"', "&quot;")
+            .replaceAll("'", "&#39;");
+        }
+
+        let commentsData = [];
+
+        async function loadComments() {
+          const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&gid=${gid}`;
+          try {
+            const res = await fetch(url);
+            const text = await res.text();
+            const json = JSON.parse(text.substring(47, text.length - 2));
+
+            let rows = json.table.rows || [];
+            rows = rows.reverse();
+
+            commentsData = rows.map((row) => {
+              const timestampStr = row.c[0]?.f || ""; // timestamp
+              const name = row.c[1]?.v || ""; // name
+              const association = row.c[2]?.v || ""; // association
+              const comment = row.c[3]?.v || ""; // comment
+              const response = row.c[4]?.v || ""; // admin response
+
+              return { timestampStr, name, association, comment, response };
+            });
+
+            renderComments();
+          } catch (err) {
+            console.error("Error loading comments:", err);
+            document.getElementById("comments").innerHTML =
+              "<p>⚠️ Could not load comments. Check sheetId & permissions.</p>";
+          }
+        }
+
+        function renderComments() {
+          const container = document.getElementById("comments");
+          container.innerHTML = "";
+
+          commentsData.forEach((item) => {
+            if (item.name && item.comment && item.timestampStr) {
+              const dateObj = new Date(item.timestampStr);
+              const formatted = isNaN(dateObj)
+                ? escapeHtml(item.timestampStr)
+                : formatRelativeTime(dateObj);
+
+              const el = document.createElement("div");
+              el.className = "comment";
+              el.innerHTML = `
+        <div class="comment-header">
+          <strong>${escapeHtml(item.name)}</strong>
+          ${item.association ? `<span class="separator"> |  </span><span class="association">${escapeHtml(item.association)}</span>` : ""}
+          <span class="date">${formatted}</span>
+        </div>
+        <p>${escapeHtml(item.comment)}</p>
+        ${
+          item.response
+            ? `<div class="admin-response"><strong>Mempelai:</strong> ${escapeHtml(item.response)}</div>`
+            : ""
+        }
+      `;
+              container.appendChild(el);
+            }
+          });
+        }
+
+        // load immediately and refresh
+        loadComments();
+        setInterval(loadComments, 5000);
+      </script>
+    </div>
+    <script id="vike_pageContext" type="application/json">
+      {
+        "_urlRewrite": null,
+        "pageId": "/pages/komen",
+        "routeParams": {},
+        "data": {
+          "url": "https://url/komen",
+          "system": { "params": {}, "search": {}, "origin": "https://url" },
+          "resources": {},
+          "pageMeta": {
+            "title": "Untitled",
+            "description": "",
+            "excludePageFromSearch": true,
+            "language": "",
+            "socialImageAssetName": "!undefined",
+            "socialImageUrl": "",
+            "status": "!undefined",
+            "redirect": "",
+            "custom": []
+          }
+        }
+      }
+    </script>
+    <script id="vike_globalContext" type="application/json">
+      {}
+    </script>
+    <script
+      src="/assets/entries/entry-server-routing.CnR22_y3.js"
+      type="module"
+      async
+    ></script>
+    <link
+      rel="modulepreload"
+      href="/assets/entries/pages_komen.Di4Pilab.js"
+      as="script"
+      type="text/javascript"
+    />
+    <link
+      rel="modulepreload"
+      href="/assets/chunks/chunk-Cd2ff5R-.js"
+      as="script"
+      type="text/javascript"
+    />
+  </body>
+</html>
