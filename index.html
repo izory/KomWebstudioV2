@@ -1,0 +1,428 @@
+<!doctype html>
+<html
+  lang="en"
+  data-ws-project="16699a07-a447-4b1f-94d5-44111b078a52"
+  data-ws-last-published="2025-09-15T07:58:57.515Z"
+>
+  <head>
+    <link
+      rel="stylesheet"
+      type="text/css"
+      href="/assets/static/app_generated_index-6937cd5a.CYVIba-O.css"
+    />
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta property="og:url" content="https://url/" />
+    <title>Home</title>
+    <meta property="og:title" content="Home" />
+    <meta property="og:type" content="website" />
+  </head>
+  <body class="w-element czv7gc8 c8p2m27">
+    <div class="w-html-embed">
+      <style>
+        #mypop:popover-open::backdrop {
+          animation: backdrop-fade-in 0.7s ease-out;
+          background-color: rgb(0 0 0 / 25%);
+        }
+      </style>
+    </div>
+    <div class="w-element"></div>
+    <div
+      class="w-element c1p5bfhl cgis2jg cm4586o cf6bgmk cxndnhu c1y18w28 c1hpyaj4"
+    >
+      <button
+        popovertarget="mypop"
+        class="w-element c9txxn c1a6xlw8 c1wil7lt c2bpps4 c189s191 c1mvtim1 c8i73al crk7gh c113wi9a cn32oc6 cqiqc9d c1hmc8j5"
+      >
+        Komentar
+      </button>
+    </div>
+    <div class="w-element">
+      <div
+        class="w-element c16ixnw3 c1c0bq7v c1lsblzp c1mzq4nk cgfe2sa cq0v6wg c6flnmm c1873tfu c14p57gr c1wn3wtc c1ygw8mx c1wi1rb2 c1ixnb0a c1bc0gir c10qr90p c24ydqw cpw3iqu c8gyjq8 cet25e cyp66us"
+      >
+        <div class="w-html-embed">
+          <style>
+            #comments {
+              max-width: 600px;
+              margin: 20px auto;
+            }
+
+            .comment {
+              background: #fff;
+              padding: 15px;
+              margin-bottom: 15px;
+              border-radius: 12px;
+              box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+              transition: transform 0.2s ease;
+            }
+
+            .comment:hover {
+              transform: translateY(-2px);
+            }
+
+            .comment-header {
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+              margin-bottom: 6px;
+              flex-wrap: wrap;
+            }
+
+            .comment-header strong {
+              font-weight: bold;
+              margin-right: 6px;
+              color: #222;
+            }
+
+            .comment-header .association {
+              font-weight: 300;
+              color: #666;
+              margin-right: auto; /* pushes date to the right */
+              font-size: 0.9rem;
+            }
+
+            .comment-header .date {
+              font-size: 0.8rem;
+              color: #777;
+              font-style: italic;
+            }
+
+            .comment p {
+              margin: 0;
+              line-height: 1.5;
+              color: #555;
+            }
+
+            .admin-response {
+              margin-top: 10px;
+              padding: 8px 12px;
+              background: #eeeeee;
+              /* border-left: 1px solid #d7d9d9; */
+              border-radius: 10px;
+              font-size: 0.9rem;
+              color: #333;
+            }
+
+            .separator {
+              color: #999;
+              margin: 0 6px;
+              font-weight: normal;
+            }
+          </style>
+
+          <div id="comments"></div>
+
+          <script>
+            const sheetId = "13xLjhbICv4BGzHm1WCKom9Uof8A15g2axBjzTKbsVi0";
+            const gid = "234595483";
+
+            function formatRelativeTime(date) {
+              const now = new Date();
+              const diffMs = now - date;
+              const diffSec = Math.floor(diffMs / 1000);
+              const diffMin = Math.floor(diffSec / 60);
+              const diffHour = Math.floor(diffMin / 60);
+              const diffDay = Math.floor(diffHour / 24);
+
+              if (diffSec < 10) return "Just now";
+              if (diffSec < 60) return `${diffSec} seconds ago`;
+              if (diffMin < 60) return `${diffMin} minutes ago`;
+              if (diffHour < 24) return `${diffHour} hours ago`;
+              if (diffDay === 1) {
+                return `Yesterday at ${date.toLocaleTimeString("en-US", {
+                  hour: "numeric",
+                  minute: "2-digit",
+                  hour12: true,
+                })}`;
+              }
+
+              return date
+                .toLocaleString("en-US", {
+                  month: "short",
+                  day: "numeric",
+                  year: "numeric",
+                  hour: "numeric",
+                  minute: "2-digit",
+                  hour12: true,
+                })
+                .replace(",", " •");
+            }
+
+            function escapeHtml(str) {
+              if (!str && str !== 0) return "";
+              return String(str)
+                .replaceAll("&", "&amp;")
+                .replaceAll("<", "&lt;")
+                .replaceAll(">", "&gt;")
+                .replaceAll('"', "&quot;")
+                .replaceAll("'", "&#39;");
+            }
+
+            let commentsData = [];
+
+            async function loadComments() {
+              const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&gid=${gid}`;
+              try {
+                const res = await fetch(url);
+                const text = await res.text();
+                const json = JSON.parse(text.substring(47, text.length - 2));
+
+                let rows = json.table.rows || [];
+                rows = rows.reverse();
+
+                commentsData = rows.map((row) => {
+                  const timestampStr = row.c[0]?.f || ""; // timestamp
+                  const name = row.c[1]?.v || ""; // name
+                  const association = row.c[2]?.v || ""; // association
+                  const comment = row.c[3]?.v || ""; // comment
+                  const response = row.c[4]?.v || ""; // admin response
+
+                  return { timestampStr, name, association, comment, response };
+                });
+
+                renderComments();
+              } catch (err) {
+                console.error("Error loading comments:", err);
+                document.getElementById("comments").innerHTML =
+                  "<p>⚠️ Could not load comments. Check sheetId & permissions.</p>";
+              }
+            }
+
+            function renderComments() {
+              const container = document.getElementById("comments");
+              container.innerHTML = "";
+
+              commentsData.forEach((item) => {
+                if (item.name && item.comment && item.timestampStr) {
+                  const dateObj = new Date(item.timestampStr);
+                  const formatted = isNaN(dateObj)
+                    ? escapeHtml(item.timestampStr)
+                    : formatRelativeTime(dateObj);
+
+                  const el = document.createElement("div");
+                  el.className = "comment";
+                  el.innerHTML = `
+        <div class="comment-header">
+          <strong>${escapeHtml(item.name)}</strong>
+          ${item.association ? `<span class="separator"> |  </span><span class="association">${escapeHtml(item.association)}</span>` : ""}
+          <span class="date">${formatted}</span>
+        </div>
+        <p>${escapeHtml(item.comment)}</p>
+        ${
+          item.response
+            ? `<div class="admin-response"><strong>Mempelai:</strong> ${escapeHtml(item.response)}</div>`
+            : ""
+        }
+      `;
+                  container.appendChild(el);
+                }
+              });
+            }
+
+            // load immediately and refresh
+            loadComments();
+            setInterval(loadComments, 5000);
+          </script>
+        </div>
+      </div>
+    </div>
+    <div
+      id="mypop"
+      popover=""
+      class="w-element c1f8n0cu c1p2lwsh c2bj54i c7i37w7 c17654jv c1k928sd c1u21my1 cq7lqkw coancch c2lblpi c7xyhj0 cmo3smb c1xtxd48 c1eaigc8 c17u732b c83asq5 cpw3iqu c8gyjq8 cet25e cyp66us c1rsptrj"
+    >
+      <div id="" class="w-html-embed c1yc8i7w caqncqb">
+        <style>
+          form {
+            max-width: 500px;
+            margin: 20px auto;
+            padding: 5px 30px 20px 30px;
+            border-radius: 20px;
+            background: #f9f9f9;
+            /*  box-shadow: 0 4px 12px rgba(0,0,0,0.1); */
+            font-family: sans-serif;
+          }
+
+          label {
+            font-weight: bold;
+            margin-bottom: 6px;
+            display: block;
+          }
+
+          input,
+          textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            font-size: 14px;
+          }
+
+          /* Flex container for Nama + Assosiasi */
+          .row {
+            display: flex;
+            gap: 30px; /* space between inputs */
+            margin-bottom: 16px;
+            margin-right: 20px;
+          }
+
+          .row > div {
+            flex: 1; /* make both fields equal width */
+          }
+
+          textarea {
+            margin-bottom: 16px;
+            margin-right: 16px; /* 👈 add right margin */
+            width: calc(100% - 20px); /* 👈 keeps it aligned inside the form */
+          }
+
+          button {
+            background: #4a90e2;
+            color: white;
+            padding: 10px 16px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 17px;
+            font-weight: bold;
+            width: 25%;
+          }
+
+          button:hover {
+            background: #357ab8;
+          }
+          h3 {
+            text-align: center;
+          }
+          #btnWrap {
+            display: flex;
+            justify-content: flex-end;
+          }
+        </style>
+
+        <div id="formWrap">
+          <form
+            action="https://docs.google.com/forms/d/e/1FAIpQLSeozwZGTGRA1lfd9OWAm1CTb6PWuYEHJk7M34Fwkh3QdaXD_Q/formResponse"
+            method="POST"
+            target="_blank"
+          >
+            <h3>Komentar</h3>
+            <!-- Nama + Assosiasi in one row -->
+            <div class="row">
+              <div>
+                <!-- <label for="nama">Nama</label> -->
+                <input
+                  type="text"
+                  name="entry.1067394405"
+                  id="nama"
+                  placeholder="Nama"
+                  required
+                />
+              </div>
+
+              <div>
+                <!-- <label for="assosiasi">Assosiasi</label> -->
+                <input
+                  type="text"
+                  name="entry.1310878286"
+                  id="assosiasi"
+                  placeholder="Assosiasi (eg. IPA2)"
+                  required
+                />
+              </div>
+            </div>
+
+            <!-- Komen -->
+            <!-- <label for="komen">Komen</label> -->
+            <textarea
+              name="entry.170161164"
+              id="komen"
+              rows="4"
+              placeholder="Berikan komentar dan doa anda untuk mempelai"
+              required
+            ></textarea>
+
+            <div id="btnWrap">
+              <button type="submit">Post</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+    <a
+      href="https://webstudio.is/?via=badge"
+      target="_blank"
+      class="w-element c6pu0nv cvzoxe0 c1sii751 c1y18w28 c1hpyaj4 cbwcya coifl1l c1re6re6 c18qkqes c1o0cf88 cn165hr c1enofh7 c85yme1 cc7u7uk cdw9q5m c1m1tglq c1m3egg2 cq2lv99 c1c36bkk cj4r0fp ccjxut cuk56od c16upgfw cbioeaa c41wrge ciexfvn c1mn1aj6 c1pp2b2t"
+      ><div class="w-html-embed ciq6hg4 c1jjgpq5 c1l11kgj c8luo92">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          fill="currentColor"
+          viewBox="0 0 16 16"
+          width="100%"
+          height="100%"
+          style="display: block"
+        >
+          <path
+            fill-rule="evenodd"
+            d="m12.32 12.416 2.62-8.085a1.205 1.205 0 1 0-2.292-.746l-2.62 8.084a1.205 1.205 0 1 0 2.292.747Z"
+            clip-rule="evenodd"
+          />
+          <path
+            fill-rule="evenodd"
+            d="M8 7.624c.297 0 .517.175.704.394.207.243.373.545.514.866.634 1.44.753 3.241.753 3.241a1.206 1.206 0 0 0 1.285 1.122 1.207 1.207 0 0 0 1.12-1.287s-.16-2.25-.952-4.05C10.744 6.364 9.594 5.208 8 5.208c-1.594 0-2.744 1.156-3.424 2.7-.792 1.8-.951 4.05-.951 4.05a1.207 1.207 0 0 0 1.12 1.288 1.206 1.206 0 0 0 1.284-1.122s.119-1.8.753-3.24a3.52 3.52 0 0 1 .514-.867c.187-.22.406-.394.704-.394Z"
+            clip-rule="evenodd"
+          />
+          <path
+            fill-rule="evenodd"
+            d="M5.973 11.669 3.352 3.585a1.205 1.205 0 1 0-2.293.746l2.622 8.084a1.205 1.205 0 1 0 2.292-.746Z"
+            clip-rule="evenodd"
+          />
+        </svg>
+      </div>
+      <div class="w-element">Built with Webstudio</div></a
+    >
+    <script id="vike_pageContext" type="application/json">
+      {
+        "_urlRewrite": null,
+        "pageId": "/pages/index",
+        "routeParams": {},
+        "data": {
+          "url": "https://url/",
+          "system": { "params": {}, "search": {}, "origin": "https://url" },
+          "resources": {},
+          "pageMeta": {
+            "title": "Home",
+            "description": "!undefined",
+            "excludePageFromSearch": "!undefined",
+            "language": "!undefined",
+            "socialImageAssetName": "!undefined",
+            "socialImageUrl": "!undefined",
+            "status": "!undefined",
+            "redirect": "!undefined",
+            "custom": []
+          }
+        }
+      }
+    </script>
+    <script id="vike_globalContext" type="application/json">
+      {}
+    </script>
+    <script
+      src="/assets/entries/entry-server-routing.CnR22_y3.js"
+      type="module"
+      async
+    ></script>
+    <link
+      rel="modulepreload"
+      href="/assets/entries/pages_index.C2PSJOBY.js"
+      as="script"
+      type="text/javascript"
+    /><link
+      rel="modulepreload"
+      href="/assets/chunks/chunk-Cd2ff5R-.js"
+      as="script"
+      type="text/javascript"
+    />
+  </body>
+</html>
